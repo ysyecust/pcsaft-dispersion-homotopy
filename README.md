@@ -6,8 +6,16 @@ Dispersion-Strength Homotopy and Pseudo-Arclength Continuation*.
 The solver embeds the PC-SAFT density equation in its own hard-chain /
 dispersion split, traces the anchor-connected solution curve with adaptive
 pseudo-arclength continuation, and returns every intersection with the full
-model as a density root, classified by `sign(dP/drho)`. It uses no density
-grid, no stationary-point partition, and no multi-start rescue.
+model as a density root, classified by a dimensionless stability indicator.
+It uses no density grid, no stationary-point partition, and no multi-start
+rescue.
+
+![One connected homotopy curve reaching all four density roots of a CH4/n-C10 state](docs/homotopy_curve_overview.png)
+
+*The curve above is computed from the model itself for a four-root
+CH$_4$/$n$-C$_{10}$ state: the hard-chain anchor at $\lambda=0$ is supplied
+by PC-SAFT's own reference equation, and every intersection of the connected
+curve with $\lambda=1$ is a density root of the full model.*
 
 ## Build
 
@@ -63,6 +71,14 @@ figure. Outputs are `cr_method_summary.csv` (per method),
 `cr_class_summary.csv` (per method and target class) and
 `cr_state_method_results.csv` (per state).
 
+![Completeness against cost for all compared methods on the 100,000-state catalogue](docs/completeness_cost.png)
+
+*Each filled marker is a method's failure count on the exact stable-root
+set against its mean cost; the whisker rises to its failure count when the
+intermediate root is also required. Only the dispersion homotopy and an
+8192-interval stationary partition fail in no state, at costs 6.9$\times$
+apart.*
+
 ## 4. Structural audit of the two embeddings — about a minute
 
 Samples both solution graphs and counts the poles of each, and applies the
@@ -72,6 +88,47 @@ interval.
 ```bash
 ./build/embedding_pole_audit --output out_poles --limit-per-group 150
 ```
+
+## Further results
+
+Three results the article states in prose, plotted here for space.
+
+**Accuracy at tangent targets.** The tangent classes are the states adjacent
+to phase appearance and disappearance, where a root sits at
+dP/d&rho;&nbsp;&asymp;&nbsp;0. They are where the compared methods separate:
+
+![Exact stable-root accuracy split by target class for five methods](docs/tangent_class_accuracy.png)
+
+**Why the fixed-point transfer saturates.** The starting-point criterion of
+ref. [25] tries to pick an anchor whose solution graph has no poles. Inside
+the interval on which the rational PC-SAFT pressure is defined, the best
+available anchor is pole-free in only 1.2% of audited states, and a trace
+stopped by a pole cannot reach the roots beyond it. The dispersion-strength
+graph has no poles by construction:
+
+![Distribution of the fewest poles reachable by the fixed-point starting criterion](docs/pole_distribution.png)
+
+**What the one-time audit costs.** The structural audit is paid once per
+source isotherm and reused for every target pressure on it, so its amortized
+cost falls with the workload; the criterion scan of the fixed-point method is
+paid on every state:
+
+![Amortized cost of the dispersion homotopy against workload](docs/audit_amortization.png)
+
+## Algorithm at a glance
+
+<p align="center">
+<img src="docs/algorithm_flowchart.png" width="560"
+     alt="Flowchart of the solver: hard-chain anchor, low-density
+     certificate, pseudo-arclength loop with three event branches, and
+     stability classification">
+</p>
+
+The loop tests three events per accepted step -- a failed corrector, a sign
+change of &lambda;&nbsp;&minus;&nbsp;1 (a density root of the full model), and
+a sign change of d&lambda;/ds (a fold) -- and terminates only when both traces
+reach the boundaries of the admissible density domain, which is what the
+returned completion status certifies.
 
 ## Layout
 
