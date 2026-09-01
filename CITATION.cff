@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: PC-SAFT density root finding by dispersion-strength homotopy
-message: If you use this software, please cite the accompanying article.
+message: If you use this software, please cite the accompanying article (see preferred-citation).
 type: software
 authors:
   - family-names: Yang
@@ -11,3 +11,15 @@ authors:
     given-names: Wenli
 license: MIT
 version: 1.0.0
+preferred-citation:
+  type: article
+  title: "A PC-SAFT Density Root-Finding Method Based on Dispersion-Strength Homotopy and Pseudo-Arclength Continuation"
+  authors:
+    - family-names: Yang
+      given-names: Shaoyi
+    - family-names: Xin
+      given-names: Hui
+    - family-names: Du
+      given-names: Wenli
+  year: 2026
+  url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7201757"

@@ -1,7 +1,8 @@
 # PC-SAFT density root finding by dispersion-strength homotopy
 
 Reference implementation for *A PC-SAFT Density Root-Finding Method Based on
-Dispersion-Strength Homotopy and Pseudo-Arclength Continuation*.
+Dispersion-Strength Homotopy and Pseudo-Arclength Continuation*
+([SSRN preprint](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7201757)).
 
 The solver embeds the PC-SAFT density equation in its own hard-chain /
 dispersion split, traces the anchor-connected solution curve with adaptive
@@ -146,6 +147,12 @@ returned completion status certifies.
 
 The frozen experiment outputs, model parameters and reference roots are
 archived separately; see the Data availability statement of the article.
+
+## Citing
+
+If you use this software, please cite the accompanying article; a preprint is
+available on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7201757).
+Citation metadata for this repository is in `CITATION.cff`.
 
 ## Licence
 
