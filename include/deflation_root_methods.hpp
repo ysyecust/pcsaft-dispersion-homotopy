@@ -127,9 +127,8 @@ inline bool deflated_newton(
     return false;
 }
 
-// Find-and-hide enumeration.  Restarts are placed on the same
-// packing-fraction grid used by the multi-start Newton baselines, so the
-// two differ only by the deflation step.
+// Find-and-hide enumeration.  Restarts are placed at six evenly spaced
+// packing fractions spanning the admissible interval.
 inline direct_roots::MethodResult find_and_hide(
     const stationary_roots::Equation& equation,
     const direct_roots::MethodConfig& config = {},
