@@ -145,8 +145,16 @@ returned completion status certifies.
 
 ## Data
 
-The frozen experiment outputs, model parameters and reference roots are
-archived separately; see the Data availability statement of the article.
+The frozen experiment outputs, model parameters and reference roots of the
+original submission are archived separately; see the Data availability
+statement of the article. The result tables added in revision are kept here
+under `results/`:
+
+| File | Contents |
+|---|---|
+| `results/cr_method_summary.csv` | per-method completeness under both criteria, missing stable roots, the three stability-threshold columns, evaluation counts and timings (Table 1 of the article) |
+| `results/cr_class_summary.csv` | the same accuracy figures split by target class (interior, lower tangent, upper tangent) |
+| `results/cr_pole_audit.csv`, `results/cr_pole_audit_report.txt` | the embedding pole audit on 600 catalogue states (Section 4.5 of the article) |
 
 ## Citing
 

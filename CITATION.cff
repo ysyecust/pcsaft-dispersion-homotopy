@@ -5,10 +5,13 @@ type: software
 authors:
   - family-names: Yang
     given-names: Shaoyi
+    affiliation: Key Laboratory of Smart Manufacturing in Energy Chemical Process, Ministry of Education, East China University of Science and Technology
   - family-names: Xin
     given-names: Hui
+    affiliation: Key Laboratory of Smart Manufacturing in Energy Chemical Process, Ministry of Education, East China University of Science and Technology
   - family-names: Du
     given-names: Wenli
+    affiliation: State Key Laboratory of Industrial Control Technology, East China University of Science and Technology
 license: MIT
 version: 1.0.0
 preferred-citation:

@@ -1,0 +1,20 @@
+Embedding pole audit
+==============================================================
+catalogue states audited          : 600
+anchor cases                      : 1799
+
+Dispersion-strength embedding (this work)
+  sign changes of P_disp on the mesh : 0
+  Proposition 1 predicts zero; the audit finds zero.
+
+Fixed-point embedding (ref. [25])
+  anchor cases with at least one pole : 1795/1799 (99.8%)
+    hard_chain    600/600  cases, mean 2.22 poles
+    ideal_gas     599/599  cases, mean 2.24 poles
+    mid_domain    596/600  cases, mean 2.40 poles
+
+Proposition test: roots on both sides of the anchor => a pole
+  cases where roots straddle the anchor : 336
+  counterexamples                       : 0
+
+Mesh: 20000 uniform density intervals over the admissible domain.
