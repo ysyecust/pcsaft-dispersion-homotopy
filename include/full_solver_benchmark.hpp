@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 namespace solver_benchmark {
@@ -98,10 +99,98 @@ inline std::vector<Root> merge_roots(
 }
 
 // Stable-set comparison at an explicit dimensionless threshold, applied
-// symmetrically to the reference and the returned roots.  Returns the number
-// of reference stable roots not matched and returned stable roots not
-// matching, so that the exact-stable-set criterion can be evaluated at
-// several thresholds from one run.
+// symmetrically to the reference and the returned roots.  Both sides are
+// first reduced to their stable subsets (chi > chi_tolerance); the two
+// subsets are then matched by density.  A reference stable root whose
+// returned counterpart is classified marginal or unstable therefore counts
+// as missing, and a returned root classified stable whose reference
+// counterpart is not counts as extra: the exact-stable-set criterion compares
+// the sets an outer phase calculation would actually receive.
+struct StableComparison {
+    int reference_stable = 0;
+    int returned_stable = 0;
+    int missed_stable = 0;
+    int extra_stable = 0;
+    // matched density pairs whose stable membership disagrees between the
+    // reference and the returned root
+    int membership_mismatches = 0;
+    bool complete = false;
+};
+
+inline StableComparison compare_stable_subsets(
+    const std::vector<Root>& reference,
+    const std::vector<Root>& returned,
+    double relative_tolerance,
+    double chi_tolerance) {
+    StableComparison result;
+    std::vector<Root> reference_stable;
+    std::vector<Root> returned_stable;
+    for (const auto& root : reference) {
+        if (classify(root, chi_tolerance) == Stability::stable) {
+            reference_stable.push_back(root);
+        }
+    }
+    for (const auto& root : returned) {
+        if (classify(root, chi_tolerance) == Stability::stable) {
+            returned_stable.push_back(root);
+        }
+    }
+    result.reference_stable = static_cast<int>(reference_stable.size());
+    result.returned_stable = static_cast<int>(returned_stable.size());
+
+    std::vector<bool> reference_matched(reference_stable.size(), false);
+    std::vector<bool> returned_matched(returned_stable.size(), false);
+    for (std::size_t r = 0; r < returned_stable.size(); ++r) {
+        std::size_t best = reference_stable.size();
+        double best_difference = std::numeric_limits<double>::infinity();
+        for (std::size_t i = 0; i < reference_stable.size(); ++i) {
+            if (reference_matched[i] ||
+                !same_root(reference_stable[i], returned_stable[r],
+                           relative_tolerance)) {
+                continue;
+            }
+            const double difference = std::abs(
+                reference_stable[i].density - returned_stable[r].density);
+            if (difference < best_difference) {
+                best = i;
+                best_difference = difference;
+            }
+        }
+        if (best == reference_stable.size()) {
+            continue;
+        }
+        reference_matched[best] = true;
+        returned_matched[r] = true;
+    }
+    for (std::size_t i = 0; i < reference_stable.size(); ++i) {
+        if (!reference_matched[i]) {
+            ++result.missed_stable;
+            // was the density itself returned, only with another class?
+            for (const auto& root : returned) {
+                if (same_root(reference_stable[i], root, relative_tolerance) &&
+                    classify(root, chi_tolerance) != Stability::stable) {
+                    ++result.membership_mismatches;
+                    break;
+                }
+            }
+        }
+    }
+    for (std::size_t r = 0; r < returned_stable.size(); ++r) {
+        if (!returned_matched[r]) {
+            ++result.extra_stable;
+            for (const auto& root : reference) {
+                if (same_root(root, returned_stable[r], relative_tolerance) &&
+                    classify(root, chi_tolerance) != Stability::stable) {
+                    ++result.membership_mismatches;
+                    break;
+                }
+            }
+        }
+    }
+    result.complete = result.missed_stable == 0 && result.extra_stable == 0;
+    return result;
+}
+
 inline void compare_stable_at_tolerance(
     const std::vector<Root>& reference,
     const std::vector<Root>& returned,
@@ -109,43 +198,10 @@ inline void compare_stable_at_tolerance(
     double chi_tolerance,
     int& missed_stable,
     int& extra_stable) {
-    missed_stable = 0;
-    extra_stable = 0;
-    std::vector<bool> reference_matched(reference.size(), false);
-    std::vector<bool> returned_matched(returned.size(), false);
-    for (std::size_t r = 0; r < returned.size(); ++r) {
-        std::size_t best = reference.size();
-        double best_difference = std::numeric_limits<double>::infinity();
-        for (std::size_t i = 0; i < reference.size(); ++i) {
-            if (reference_matched[i] ||
-                !same_root(reference[i], returned[r], relative_tolerance)) {
-                continue;
-            }
-            const double difference =
-                std::abs(reference[i].density - returned[r].density);
-            if (difference < best_difference) {
-                best = i;
-                best_difference = difference;
-            }
-        }
-        if (best == reference.size()) {
-            continue;
-        }
-        reference_matched[best] = true;
-        returned_matched[r] = true;
-    }
-    for (std::size_t i = 0; i < reference.size(); ++i) {
-        if (!reference_matched[i] &&
-            classify(reference[i], chi_tolerance) == Stability::stable) {
-            ++missed_stable;
-        }
-    }
-    for (std::size_t r = 0; r < returned.size(); ++r) {
-        if (!returned_matched[r] &&
-            classify(returned[r], chi_tolerance) == Stability::stable) {
-            ++extra_stable;
-        }
-    }
+    const auto comparison = compare_stable_subsets(
+        reference, returned, relative_tolerance, chi_tolerance);
+    missed_stable = comparison.missed_stable;
+    extra_stable = comparison.extra_stable;
 }
 
 inline RootComparison compare_roots(

@@ -13,7 +13,7 @@ authors:
     given-names: Wenli
     affiliation: State Key Laboratory of Industrial Control Technology, and Key Laboratory of Smart Manufacturing in Energy Chemical Process, Ministry of Education, East China University of Science and Technology
 license: MIT
-version: 1.0.0
+version: 1.0.2
 preferred-citation:
   type: article
   title: "A PC-SAFT Density Root-Finding Method Based on Dispersion-Strength Homotopy and Pseudo-Arclength Continuation"

@@ -83,6 +83,7 @@ struct Aggregate {
     long long extra = 0;
     long long missed_stable = 0;
     long long extra_stable = 0;
+    long long membership_mismatch_states = 0;
     long long total_calls = 0;
     long long total_wall_time_ns = 0;
     std::vector<double> wall_times_ns;
@@ -388,7 +389,8 @@ void write_summary(
                "complete_stable_tau1e-9,complete_stable_tau1e-8,"
                "total_scalar_calls,mean_scalar_calls,"
                "median_scalar_calls,median_wall_time_ns,p99_wall_time_ns,"
-               "total_wall_time_s,correct_results_per_s\n";
+               "total_wall_time_s,correct_results_per_s,"
+               "stable_membership_mismatch_states\n";
     for (const auto& [method, aggregate] : aggregates) {
         const double states = static_cast<double>(std::max(
             aggregate.states, 1LL));
@@ -413,7 +415,7 @@ void write_summary(
                 << matched_completeness::quantile(aggregate.wall_times_ns, 0.99)
                 << ',' << seconds << ','
                 << (seconds > 0.0 ? aggregate.complete_all / seconds : 0.0)
-                << '\n';
+                << ',' << aggregate.membership_mismatch_states << '\n';
         report << method << ": complete_all " << aggregate.complete_all
                << '/' << aggregate.states << ", complete_stable "
                << aggregate.complete_stable << ", missed_stable "
@@ -529,16 +531,20 @@ void run(
             for (const auto& method : ordered_methods) {
                 auto solved = run_method(state, method);
                 fill_chi(solved.roots, pressure_scale);
-                const auto comparison = solver_benchmark::compare_roots(
+                auto comparison = solver_benchmark::compare_roots(
                     reference, solved.roots, 2e-6);
+                // Primary stable-set metrics: stable subsets at the
+                // reference threshold tau_chi = 1e-9, compared by density.
+                const auto primary = solver_benchmark::compare_stable_subsets(
+                    reference, solved.roots, 2e-6, kChiTolerances[1]);
+                comparison.missed_stable = primary.missed_stable;
+                comparison.extra_stable = primary.extra_stable;
+                comparison.complete_stable = primary.complete;
                 bool exact_stable_tau[3];
                 for (int t = 0; t < 3; ++t) {
-                    int missed = 0;
-                    int extra = 0;
-                    solver_benchmark::compare_stable_at_tolerance(
-                        reference, solved.roots, 2e-6, kChiTolerances[t],
-                        missed, extra);
-                    exact_stable_tau[t] = missed == 0 && extra == 0;
+                    const auto at_tau = solver_benchmark::compare_stable_subsets(
+                        reference, solved.roots, 2e-6, kChiTolerances[t]);
+                    exact_stable_tau[t] = at_tau.complete;
                 }
                 rows << csv(state.state_id) << ','
                      << all_root_states::group_name(state) << ','
@@ -567,6 +573,8 @@ void run(
                 aggregate.extra += comparison.extra;
                 aggregate.missed_stable += comparison.missed_stable;
                 aggregate.extra_stable += comparison.extra_stable;
+                aggregate.membership_mismatch_states +=
+                    primary.membership_mismatches > 0 ? 1 : 0;
                 aggregate.total_calls += solved.counter.total();
                 aggregate.total_wall_time_ns += solved.wall_time_ns;
                 aggregate.wall_times_ns.push_back(

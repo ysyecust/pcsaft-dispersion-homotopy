@@ -137,7 +137,7 @@ returned completion status certifies.
 |---|---|
 | `include/complete_homotopy_curve.hpp` | the solver: predictor–corrector, event detection, fold handling, termination |
 | `include/fixed_point_homotopy.hpp` | global fixed-point homotopy baseline and its published starting-point criterion |
-| `include/deflation_root_methods.hpp` | find-and-hide by deflation |
+| `include/deflation_root_methods.hpp` | deflated multi-start Newton, our own variant of the find-and-hide hiding step (the published procedure of ref. [26] is realized by the stationary-partition baseline) |
 | `include/direct_root_methods.hpp` | Newton, uniform-scan and stationary-partition baselines |
 | `include/reference_root_isolator.hpp` | independent stationary-point hierarchy used as reference |
 | `include/pcsaft_*.hpp` | PC-SAFT pressure, derivatives and mixture combining rules |
