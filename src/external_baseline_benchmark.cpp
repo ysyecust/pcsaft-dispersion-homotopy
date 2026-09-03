@@ -176,6 +176,12 @@ std::vector<solver_benchmark::Root> convert(
 // tau values for the mechanical-stability sensitivity study
 constexpr double kChiTolerances[3] = {1e-10, 1e-9, 1e-8};
 
+// Optional diagnostics: restrict the run to the tangent target classes and
+// dump every reference and returned root with its chi indicator, so that the
+// stability-label agreement can be evaluated offline at any threshold.
+bool g_only_tangent = false;
+std::ofstream g_root_dump;
+
 inline void fill_chi(
     std::vector<solver_benchmark::Root>& roots, double pressure_scale) {
     for (auto& root : roots) {
@@ -527,10 +533,33 @@ void run(
             const double pressure_scale =
                 homotopy::complete_curve_detail::pressure_reference(
                     state.eos, state.pressure);
+            if (g_only_tangent && class_name == "interior_three_root") {
+                ++processed;
+                continue;
+            }
             fill_chi(reference, pressure_scale);
+            if (g_root_dump.is_open()) {
+                for (std::size_t i = 0; i < reference.size(); ++i) {
+                    const auto& root = reference[i];
+                    g_root_dump << csv(state.state_id) << ',' << class_name
+                                << ",reference," << i << ',' << root.density
+                                << ',' << root.chi << ',' << root.residual
+                                << ',' << root.derivative << '\n';
+                }
+            }
             for (const auto& method : ordered_methods) {
                 auto solved = run_method(state, method);
                 fill_chi(solved.roots, pressure_scale);
+                if (g_root_dump.is_open()) {
+                    for (std::size_t i = 0; i < solved.roots.size(); ++i) {
+                        const auto& root = solved.roots[i];
+                        g_root_dump << csv(state.state_id) << ',' << class_name
+                                    << ',' << method.name << ',' << i << ','
+                                    << root.density << ',' << root.chi << ','
+                                    << root.residual << ',' << root.derivative
+                                    << '\n';
+                    }
+                }
                 auto comparison = solver_benchmark::compare_roots(
                     reference, solved.roots, 2e-6);
                 // Primary stable-set metrics: stable subsets at the
@@ -613,7 +642,10 @@ int main(int argc, char** argv) {
             std::string(argv[3]) == "--output") {
             bool validation_catalog = false;
             std::size_t limit = 0;
-            for (int index = 5; index + 1 < argc; index += 2) {
+            for (int index = 5; index < argc; index += 2) {
+                if (std::string(argv[index]) != "--only-tangent" && index + 1 >= argc) {
+                    throw std::runtime_error("option needs a value");
+                }
                 const std::string option = argv[index];
                 if (option == "--catalog") {
                     const std::string value = argv[index + 1];
@@ -625,6 +657,17 @@ int main(int argc, char** argv) {
                 } else if (option == "--limit-per-group") {
                     limit = static_cast<std::size_t>(
                         std::stoull(argv[index + 1]));
+                } else if (option == "--only-tangent") {
+                    g_only_tangent = true;
+                    --index;  // flag without a value
+                } else if (option == "--dump-roots") {
+                    g_root_dump.open(argv[index + 1]);
+                    if (!g_root_dump) {
+                        throw std::runtime_error("cannot open root dump");
+                    }
+                    g_root_dump << std::setprecision(17)
+                                << "state_id,target_class,method,root_index,"
+                                   "density,chi,residual,derivative\n";
                 } else {
                     throw std::runtime_error("unknown option: " + option);
                 }
@@ -635,7 +678,7 @@ int main(int argc, char** argv) {
         std::cerr << "usage: external_baseline_benchmark --quick-test OUT\n"
                      "   or: external_baseline_benchmark --reference CSV "
                      "--output DIR [--catalog development|validation] "
-                     "[--limit-per-group N]\n";
+                     "[--limit-per-group N] [--only-tangent] [--dump-roots FILE]\n";
         return 2;
     } catch (const std::exception& error) {
         std::cerr << "external_baseline_benchmark: " << error.what() << '\n';

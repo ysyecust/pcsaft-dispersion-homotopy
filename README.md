@@ -155,6 +155,7 @@ under `results/`:
 | `results/cr_method_summary.csv` | per-method completeness under both criteria, missing stable roots, the three stability-threshold columns, evaluation counts and timings (Table 1 of the article) |
 | `results/cr_class_summary.csv` | the same accuracy figures split by target class (interior, lower tangent, upper tangent) |
 | `results/cr_pole_audit.csv`, `results/cr_pole_audit_report.txt` | the embedding pole audit on 600 catalogue states (Section 4.5 of the article) |
+| `results/tangent_roots.csv`, `results/cr_tangent_method_summary.csv`, `results/label_disagreement_vs_tau.csv`, `results/proposed_method_label_disagreements.csv` | every reference and returned root of the 2000 tangent states with its stability indicator (from `external_baseline_benchmark --only-tangent --dump-roots`), the tangent-only method summary, and the label-disagreement count as a function of the threshold produced by `results/analyze_tangent_labels.py` (Section 4.4 of the article) |
 
 ## Citing
 
