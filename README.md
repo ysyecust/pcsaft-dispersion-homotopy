@@ -145,11 +145,10 @@ returned completion status certifies.
 
 ## Data
 
-The frozen experiment outputs, model parameters and reference roots are
-archived on Zenodo: version 1 (original submission) at
-[10.5281/zenodo.21496795](https://doi.org/10.5281/zenodo.21496795) and
-version 2, which adds the per-state records of the revision experiments under
-`revision_2026-09/`, at [10.5281/zenodo.22270928](https://doi.org/10.5281/zenodo.22270928). The result tables added in revision are kept here
+The frozen experiment outputs, model parameters and reference roots of the
+original submission are archived on Zenodo at
+[10.5281/zenodo.21496795](https://doi.org/10.5281/zenodo.21496795); the
+summary tables of the revision experiments are kept here under `results/`. The result tables added in revision are kept here
 under `results/`:
 
 | File | Contents |
