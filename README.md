@@ -161,7 +161,7 @@ under `results/`:
 
 If you use this software, please cite the accompanying article; a preprint is
 available on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7201757).
-Citation metadata for this repository is in `CITATION.cff`. The release archived with the article is v1.0.3, DOI [10.5281/zenodo.22257358](https://doi.org/10.5281/zenodo.22257358); the concept DOI [10.5281/zenodo.22255415](https://doi.org/10.5281/zenodo.22255415) resolves to the latest version.
+Citation metadata for this repository is in `CITATION.cff`. The release archived with the article is v1.0.4, DOI [10.5281/zenodo.22264049](https://doi.org/10.5281/zenodo.22264049); the concept DOI [10.5281/zenodo.22255415](https://doi.org/10.5281/zenodo.22255415) resolves to the latest version.
 
 ## Licence
 
