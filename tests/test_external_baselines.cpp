@@ -8,6 +8,7 @@
 
 #include "deflation_root_methods.hpp"
 #include "fixed_point_homotopy.hpp"
+#include "full_solver_benchmark.hpp"
 
 #include <cmath>
 #include <cstdlib>
@@ -219,9 +220,44 @@ void test_find_and_hide_counts_evaluations() {
     std::cout << "ok: find-and-hide evaluation accounting\n";
 }
 
+
+// A correctly located root that carries the other stability label must fail
+// the exact-stable-set criterion: the stable subsets are compared root by
+// root, so a label disagreement counts as a missing (or extra) stable root.
+void test_stable_subsets_flag_label_mismatch() {
+    using solver_benchmark::Root;
+    Root reference_root;
+    reference_root.density = 2.0;
+    reference_root.residual = 0.0;
+    reference_root.derivative = 1.0;
+    reference_root.chi = 1e-6;          // stable in the reference
+    Root returned_root = reference_root;
+    returned_root.chi = 0.0;            // same density, labelled marginal
+
+    const auto mismatch = solver_benchmark::compare_stable_subsets(
+        {reference_root}, {returned_root}, 2e-6, 1e-9);
+    require(!mismatch.complete, "label mismatch must fail the criterion");
+    require(mismatch.missed_stable == 1, "reference stable root counted missing");
+    require(mismatch.membership_mismatches == 1, "mismatch recorded");
+
+    const auto agree = solver_benchmark::compare_stable_subsets(
+        {reference_root}, {reference_root}, 2e-6, 1e-9);
+    require(agree.complete && agree.missed_stable == 0 && agree.extra_stable == 0,
+            "identical labelled roots agree");
+
+    Root extra = returned_root;
+    extra.density = 3.0;
+    extra.chi = 1e-6;                   // stable candidate absent from reference
+    const auto spurious = solver_benchmark::compare_stable_subsets(
+        {reference_root}, {reference_root, extra}, 2e-6, 1e-9);
+    require(!spurious.complete && spurious.extra_stable == 1,
+            "extra stable candidate fails the criterion");
+}
+
 }  // namespace
 
 int main() {
+    test_stable_subsets_flag_label_mismatch();
     test_embedding_endpoints();
     test_embedding_derivatives();
     test_embedding_is_linear_in_lambda();
